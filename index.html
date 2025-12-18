@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Video Downloader Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -30,64 +30,81 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* 防止手机端点击高亮背景 */
+        * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col">
 
     <!-- 导航栏/头部 -->
-    <nav class="p-4 flex justify-end">
-        <button onclick="toggleSettings()" class="text-gray-400 hover:text-blue-600 transition-colors p-2" id="navSettingsBtn">
-            <i class="fas fa-cog text-xl"></i>
+    <nav class="p-4 flex justify-end relative z-10">
+        <button onclick="toggleSettings()" class="text-gray-500 hover:text-blue-600 transition-colors p-3 rounded-full active:bg-gray-200" id="navSettingsBtn">
+            <i class="fas fa-cog text-2xl"></i>
         </button>
     </nav>
 
-    <div class="flex-grow max-w-4xl mx-auto px-4 py-4 w-full">
-        <div class="text-center mb-10">
+    <!-- 设置弹窗 (全屏模态框) -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative transform transition-transform scale-100">
+            <!-- 关闭按钮 -->
+            <button onclick="toggleSettings()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            
+            <h3 class="font-bold text-lg mb-6 flex items-center gap-2 border-b pb-3" id="ui-configTitle">
+                <i class="fas fa-key text-yellow-500"></i> API 秘钥配置
+            </h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-2 font-medium" id="ui-tokenLabel">输入 Token</label>
+                    <input 
+                        type="password" 
+                        id="apiTokenInput" 
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                    >
+                </div>
+                
+                <button 
+                    onclick="saveToken()" 
+                    id="ui-saveBtn"
+                    class="w-full bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95"
+                >保存设置</button>
+                
+                <p class="text-xs text-gray-400 italic text-center leading-relaxed" id="ui-configHint">
+                    * 秘钥将保存在浏览器本地，不会上传到 GitHub 仓库。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-grow max-w-4xl mx-auto px-4 py-4 w-full relative z-0">
+        <div class="text-center mb-10 mt-4">
             <h1 class="text-3xl font-bold text-gray-900 mb-2" id="ui-mainTitle">
                 <i class="fas fa-video text-blue-600 mr-2"></i>短视频去水印解析
             </h1>
             <p class="text-gray-500 text-sm" id="ui-subTitle">支持抖音、小红书、B站、快手等主流平台</p>
         </div>
 
-        <!-- 秘钥配置区域 -->
-        <div id="settingsPanel" class="hidden glass-morphism p-6 rounded-2xl shadow-lg mb-8 border-2 border-blue-100">
-            <h3 class="font-bold mb-4 flex items-center gap-2" id="ui-configTitle">
-                <i class="fas fa-key text-yellow-500"></i> API 秘钥配置
-            </h3>
-            <div class="flex flex-col md:flex-row gap-4">
-                <input 
-                    type="password" 
-                    id="apiTokenInput" 
-                    class="flex-1 px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                <button 
-                    onclick="saveToken()" 
-                    id="ui-saveBtn"
-                    class="bg-gray-800 hover:bg-black text-white px-6 py-2 rounded-lg transition-all"
-                >保存设置</button>
-            </div>
-            <p class="mt-2 text-xs text-gray-400 italic" id="ui-configHint">* 秘钥将保存在浏览器本地，不会上传到服务器。</p>
-        </div>
-
         <!-- 输入区域 -->
         <div class="glass-morphism p-6 rounded-2xl shadow-xl mb-8">
-            <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex flex-col gap-4">
                 <input 
                     type="text" 
                     id="videoUrl" 
-                    class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-base"
                 >
                 <button 
                     onclick="parseVideo()" 
                     id="parseBtn"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-medium transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
                 >
                     <i class="fas fa-magic"></i> <span id="ui-parseBtnText">立即解析</span>
                 </button>
             </div>
-            <div class="mt-3 flex items-center gap-2 text-xs text-gray-400">
-                <input type="checkbox" id="useProxy" checked>
-                <label for="useProxy" id="ui-proxyLabel">使用中转代理模式（解决跨域限制）</label>
+            <div class="mt-4 flex items-start gap-2 text-xs text-gray-400 justify-center">
+                <input type="checkbox" id="useProxy" checked class="mt-0.5">
+                <label for="useProxy" id="ui-proxyLabel">使用中转代理模式（推荐开启）</label>
             </div>
         </div>
 
@@ -101,27 +118,27 @@
         <div id="result" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="video-container rounded-2xl overflow-hidden shadow-2xl flex items-center justify-center">
-                    <video id="player" controls poster="" class="w-full h-full" playsinline>
+                    <video id="player" controls poster="" class="w-full h-full" playsinline webkit-playsinline>
                     </video>
                 </div>
 
                 <div class="space-y-6 flex flex-col justify-between">
                     <div>
                         <h2 id="title" class="text-xl font-semibold leading-relaxed mb-4">Video Title</h2>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                <p class="text-gray-400 mb-1"><i class="fas fa-heart mr-1"></i> <span id="ui-likesLabel">点赞数</span></p>
-                                <p id="likes" class="text-lg font-bold text-red-500">0</p>
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 text-center">
+                                <p class="text-gray-400 mb-1 text-xs"><i class="fas fa-heart text-red-400 mr-1"></i> <span id="ui-likesLabel">点赞</span></p>
+                                <p id="likes" class="text-lg font-bold text-gray-800">0</p>
                             </div>
-                            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                                <p class="text-gray-400 mb-1"><i class="fas fa-clock mr-1"></i> <span id="ui-timeLabel">发布时间</span></p>
-                                <p id="createTime" class="text-lg font-bold text-gray-700">-</p>
+                            <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 text-center">
+                                <p class="text-gray-400 mb-1 text-xs"><i class="fas fa-clock text-blue-400 mr-1"></i> <span id="ui-timeLabel">时间</span></p>
+                                <p id="createTime" class="text-sm font-bold text-gray-700 mt-1 truncate">-</p>
                             </div>
                         </div>
                     </div>
                     <div class="space-y-3">
                         <button onclick="downloadVideo()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
-                            <i class="fas fa-download"></i> <span id="ui-downloadBtn">下载无水印视频</span>
+                            <i class="fas fa-download"></i> <span id="ui-downloadBtn">下载视频</span>
                         </button>
                     </div>
                 </div>
@@ -129,14 +146,14 @@
         </div>
 
         <!-- 错误提示 -->
-        <div id="errorBox" class="hidden bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-center">
+        <div id="errorBox" class="hidden bg-red-50 text-red-600 p-4 rounded-xl border border-red-200 text-center text-sm">
             <i class="fas fa-exclamation-circle mr-2"></i>
             <span id="errorMsg"></span>
         </div>
     </div>
 
     <footer class="py-6 text-center text-gray-400 text-xs mt-auto">
-        <span id="quotaInfo" class="hidden"><span id="ui-quotaLabel">API 剩余解析次数</span>: <span id="leftTimes">0</span></span>
+        <span id="quotaInfo" class="hidden"><span id="ui-quotaLabel">API 剩余次数</span>: <span id="leftTimes">0</span></span>
         <p class="mt-1" id="ui-footerNote">フライメディア社内用</p>
     </footer>
 
@@ -146,6 +163,7 @@
                 mainTitle: '短视频去水印解析',
                 subTitle: '支持主流平台 | 个人私有化部署版',
                 configTitle: 'API 秘钥配置',
+                tokenLabel: '输入 API Token',
                 inputPlaceholder: '请粘贴分享链接...',
                 tokenPlaceholder: '请输入您的 API Token',
                 saveBtn: '保存设置',
@@ -153,10 +171,10 @@
                 parseBtn: '立即解析',
                 proxyLabel: '使用中转代理模式（解决跨域限制）',
                 loading: '正在努力解析中...',
-                likes: '点赞数',
+                likes: '点赞',
                 time: '发布时间',
                 download: '下载无水印视频',
-                quota: 'API 剩余解析次数',
+                quota: 'API 剩余次数',
                 footerNote: 'フライメディア社内用',
                 errNoToken: '请先点击右上角齿轮设置您的 API 秘钥',
                 errNoUrl: '请先输入短视频分享链接',
@@ -167,6 +185,7 @@
                 mainTitle: '短視頻去水印解析',
                 subTitle: '支持主流平台 | 個人私有化部署版',
                 configTitle: 'API 秘鑰配置',
+                tokenLabel: '輸入 API Token',
                 inputPlaceholder: '請粘貼分享鏈接...',
                 tokenPlaceholder: '請輸入您的 API Token',
                 saveBtn: '保存設置',
@@ -174,10 +193,10 @@
                 parseBtn: '立即解析',
                 proxyLabel: '使用中轉代理模式（解決跨域限制）',
                 loading: '正在努力解析中...',
-                likes: '點讚數',
+                likes: '點讚',
                 time: '發布時間',
                 download: '下載無水印視頻',
-                quota: 'API 剩餘解析次數',
+                quota: 'API 剩餘次數',
                 footerNote: 'フライメディア社内用',
                 errNoToken: '請先點擊右上角齒輪設置您的 API 秘鑰',
                 errNoUrl: '請先輸入短視頻分享鏈接',
@@ -188,6 +207,7 @@
                 mainTitle: 'Video Watermark Remover',
                 subTitle: 'Support major platforms | Private Edition',
                 configTitle: 'API Key Configuration',
+                tokenLabel: 'API Token',
                 inputPlaceholder: 'Paste video link here...',
                 tokenPlaceholder: 'Enter your API Token',
                 saveBtn: 'Save Settings',
@@ -197,28 +217,29 @@
                 loading: 'Parsing video, please wait...',
                 likes: 'Likes',
                 time: 'Release Time',
-                download: 'Download No-Watermark Video',
-                quota: 'Remaining API Quota',
+                download: 'Download Video',
+                quota: 'Remaining Quota',
                 footerNote: 'フライメディア社内用',
-                errNoToken: 'Please set your API key in the settings first',
+                errNoToken: 'Please set your API key first',
                 errNoUrl: 'Please paste a valid video link',
                 saveSuccess: 'Settings saved successfully!',
-                parseErr: 'Parsing failed. Please check your key or URL.'
+                parseErr: 'Parsing failed. Check key or URL.'
             },
             'ja': {
                 mainTitle: 'SNS動画ダウンロード',
-                     sub: tle: '中国の主要なSNS対応,
+                subTitle: '中国の主要なSNS対応',
                 configTitle: 'APIキー設定',
+                tokenLabel: 'APIトークン',
                 inputPlaceholder: '動画リンクを貼り付けてください...',
-                tokenPlaceholder: 'APIIキーを入力してください',
-                saveBtn: Btn: '設定を保存,
+                tokenPlaceholder: 'APIキーを入力してください',
+                saveBtn: '設定を保存',
                 configHint: '* キーはローカルに保存され、GitHubにはアップロードされません。',
                 parseBtn: '解析開始',
                 proxyLabel: 'プロキシモードを使用（CORS制限回避）',
                 loading: '解析中、しばらくお待ちください...',
                 likes: 'いいね数',
                 time: '投稿時間',
-                download: oad: 'ロゴなし動画,
+                download: 'ロゴなし動画',
                 quota: 'API残り回数',
                 footerNote: 'フライメディア社内用',
                 errNoToken: '右上の歯車アイコンからAPIキーを設定してください',
@@ -242,6 +263,7 @@
             document.getElementById('ui-mainTitle').innerHTML = `<i class="fas fa-video text-blue-600 mr-2"></i>${dict.mainTitle}`;
             document.getElementById('ui-subTitle').innerText = dict.subTitle;
             document.getElementById('ui-configTitle').innerHTML = `<i class="fas fa-key text-yellow-500"></i> ${dict.configTitle}`;
+            document.getElementById('ui-tokenLabel').innerText = dict.tokenLabel;
             document.getElementById('videoUrl').placeholder = dict.inputPlaceholder;
             document.getElementById('apiTokenInput').placeholder = dict.tokenPlaceholder;
             document.getElementById('ui-saveBtn').innerText = dict.saveBtn;
@@ -265,14 +287,17 @@
             initLanguage();
             const savedToken = localStorage.getItem('DOG_API_TOKEN');
             if (!savedToken) {
-                document.getElementById('settingsPanel').classList.remove('hidden');
+                // 如果没有Token，自动打开弹窗
+                document.getElementById('settingsModal').classList.remove('hidden');
             } else {
                 document.getElementById('apiTokenInput').value = savedToken;
             }
         };
 
+        // 切换全屏模态框显示
         function toggleSettings() {
-            document.getElementById('settingsPanel').classList.toggle('hidden');
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('hidden');
         }
 
         function saveToken() {
@@ -280,7 +305,7 @@
             if (!token) return;
             localStorage.setItem('DOG_API_TOKEN', token);
             alert(i18n[currentLang].saveSuccess);
-            document.getElementById('settingsPanel').classList.add('hidden');
+            document.getElementById('settingsModal').classList.add('hidden');
         }
 
         async function parseVideo() {
@@ -295,7 +320,7 @@
             const dict = i18n[currentLang];
 
             if (!API_TOKEN) {
-                document.getElementById('settingsPanel').classList.remove('hidden');
+                toggleSettings(); // 没token直接弹窗
                 showError(dict.errNoToken);
                 return;
             }
@@ -344,7 +369,11 @@
             const player = document.getElementById('player');
             player.src = currentVideoUrl;
             player.poster = data.coverUrls;
-            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+            
+            // 手机端优化：解析成功后平滑滚动到播放器
+            setTimeout(() => {
+                document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
 
         function showError(msg) {
