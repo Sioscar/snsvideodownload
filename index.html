@@ -30,60 +30,48 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* 防止手机端点击高亮背景 */
         * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col">
 
-    <!-- 导航栏/头部 -->
-    <nav class="p-4 flex justify-end relative z-10">
+    <!-- 导航栏 -->
+    <nav class="p-4 flex justify-end">
         <button onclick="toggleSettings()" class="text-gray-500 hover:text-blue-600 transition-colors p-3 rounded-full active:bg-gray-200" id="navSettingsBtn">
             <i class="fas fa-cog text-2xl"></i>
         </button>
     </nav>
 
-    <!-- 设置弹窗 (全屏模态框) -->
-    <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative transform transition-transform scale-100">
-            <!-- 关闭按钮 -->
-            <button onclick="toggleSettings()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-            
-            <h3 class="font-bold text-lg mb-6 flex items-center gap-2 border-b pb-3" id="ui-configTitle">
-                <i class="fas fa-key text-yellow-500"></i> API 秘钥配置
-            </h3>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm text-gray-600 mb-2 font-medium" id="ui-tokenLabel">输入 Token</label>
-                    <input 
-                        type="password" 
-                        id="apiTokenInput" 
-                        class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                    >
-                </div>
-                
-                <button 
-                    onclick="saveToken()" 
-                    id="ui-saveBtn"
-                    class="w-full bg-gray-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95"
-                >保存设置</button>
-                
-                <p class="text-xs text-gray-400 italic text-center leading-relaxed" id="ui-configHint">
-                    * 秘钥将保存在浏览器本地，不会上传到 GitHub 仓库。
-                </p>
-            </div>
-        </div>
-    </div>
-
-    <div class="flex-grow max-w-4xl mx-auto px-4 py-4 w-full relative z-0">
-        <div class="text-center mb-10 mt-4">
+    <div class="flex-grow max-w-4xl mx-auto px-4 w-full">
+        <div class="text-center mb-6">
             <h1 class="text-3xl font-bold text-gray-900 mb-2" id="ui-mainTitle">
                 <i class="fas fa-video text-blue-600 mr-2"></i>短视频去水印解析
             </h1>
             <p class="text-gray-500 text-sm" id="ui-subTitle">支持抖音、小红书、B站、快手等主流平台</p>
+        </div>
+
+        <!-- 修复版：嵌入式设置面板 (默认隐藏) -->
+        <div id="settingsPanel" class="hidden mb-8 transition-all duration-300">
+            <div class="glass-morphism p-5 rounded-2xl border-2 border-blue-100 shadow-inner">
+                <h3 class="font-bold text-lg mb-4 flex items-center gap-2 text-gray-800" id="ui-configTitle">
+                    <i class="fas fa-key text-yellow-500"></i> API 秘钥配置
+                </h3>
+                <div class="flex flex-col gap-3">
+                    <input 
+                        type="password" 
+                        id="apiTokenInput" 
+                        class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                    >
+                    <button 
+                        onclick="saveToken()" 
+                        id="ui-saveBtn"
+                        class="w-full bg-gray-800 hover:bg-black text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg active:scale-95"
+                    >保存设置</button>
+                </div>
+                <p class="mt-3 text-xs text-gray-400 italic" id="ui-configHint">
+                    * 秘钥将保存在浏览器本地，不会上传到 GitHub 仓库。
+                </p>
+            </div>
         </div>
 
         <!-- 输入区域 -->
@@ -137,7 +125,7 @@
                         </div>
                     </div>
                     <div class="space-y-3">
-                        <button onclick="downloadVideo()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
+                        <button id="downloadBtn" onclick="downloadVideo()" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
                             <i class="fas fa-download"></i> <span id="ui-downloadBtn">下载视频</span>
                         </button>
                     </div>
@@ -174,12 +162,14 @@
                 likes: '点赞',
                 time: '发布时间',
                 download: '下载无水印视频',
+                downloading: '视频下载中...',
                 quota: 'API 剩余次数',
                 footerNote: 'フライメディア社内用',
                 errNoToken: '请先点击右上角齿轮设置您的 API 秘钥',
                 errNoUrl: '请先输入短视频分享链接',
                 saveSuccess: '秘钥保存成功！',
-                parseErr: '解析出错，请确认秘钥和链接是否正确。'
+                parseErr: '解析出错，请确认秘钥和链接是否正确。',
+                dlFail: '自动下载失败，将尝试在新窗口打开。'
             },
             'zh-TW': {
                 mainTitle: '短視頻去水印解析',
@@ -196,12 +186,14 @@
                 likes: '點讚',
                 time: '發布時間',
                 download: '下載無水印視頻',
+                downloading: '視頻下載中...',
                 quota: 'API 剩餘次數',
                 footerNote: 'フライメディア社内用',
                 errNoToken: '請先點擊右上角齒輪設置您的 API 秘鑰',
                 errNoUrl: '請先輸入短視頻分享鏈接',
                 saveSuccess: '秘鑰保存成功！',
-                parseErr: '解析出錯，請確認秘鑰和鏈接是否正確。'
+                parseErr: '解析出錯，請確認秘鑰和鏈接是否正確。',
+                dlFail: '自動下載失敗，將嘗試在新窗口打開。'
             },
             'en': {
                 mainTitle: 'Video Watermark Remover',
@@ -218,12 +210,14 @@
                 likes: 'Likes',
                 time: 'Release Time',
                 download: 'Download Video',
+                downloading: 'Downloading...',
                 quota: 'Remaining Quota',
                 footerNote: 'フライメディア社内用',
                 errNoToken: 'Please set your API key first',
                 errNoUrl: 'Please paste a valid video link',
                 saveSuccess: 'Settings saved successfully!',
-                parseErr: 'Parsing failed. Check key or URL.'
+                parseErr: 'Parsing failed. Check key or URL.',
+                dlFail: 'Download failed, opening in new tab.'
             },
             'ja': {
                 mainTitle: 'SNS動画ダウンロード',
@@ -240,18 +234,19 @@
                 likes: 'いいね数',
                 time: '投稿時間',
                 download: 'ロゴなし動画',
+                downloading: 'ダウンロード中...',
                 quota: 'API残り回数',
                 footerNote: 'フライメディア社内用',
                 errNoToken: '右上の歯車アイコンからAPIキーを設定してください',
                 errNoUrl: '動画リンクを入力してください',
                 saveSuccess: '設定を保存しました！',
-                parseErr: '解析に失敗しました。キーまたはリンクを確認してください。'
+                parseErr: '解析に失敗しました。キーまたはリンクを確認してください。',
+                dlFail: 'ダウンロードに失敗しました。新しいタブで開きます。'
             }
         };
 
         let currentLang = 'en';
 
-        // 语言检测与应用
         function initLanguage() {
             const browserLang = navigator.language || navigator.userLanguage;
             if (browserLang.startsWith('zh-CN')) currentLang = 'zh-CN';
@@ -263,7 +258,6 @@
             document.getElementById('ui-mainTitle').innerHTML = `<i class="fas fa-video text-blue-600 mr-2"></i>${dict.mainTitle}`;
             document.getElementById('ui-subTitle').innerText = dict.subTitle;
             document.getElementById('ui-configTitle').innerHTML = `<i class="fas fa-key text-yellow-500"></i> ${dict.configTitle}`;
-            document.getElementById('ui-tokenLabel').innerText = dict.tokenLabel;
             document.getElementById('videoUrl').placeholder = dict.inputPlaceholder;
             document.getElementById('apiTokenInput').placeholder = dict.tokenPlaceholder;
             document.getElementById('ui-saveBtn').innerText = dict.saveBtn;
@@ -287,17 +281,15 @@
             initLanguage();
             const savedToken = localStorage.getItem('DOG_API_TOKEN');
             if (!savedToken) {
-                // 如果没有Token，自动打开弹窗
-                document.getElementById('settingsModal').classList.remove('hidden');
+                document.getElementById('settingsPanel').classList.remove('hidden');
             } else {
                 document.getElementById('apiTokenInput').value = savedToken;
             }
         };
 
-        // 切换全屏模态框显示
         function toggleSettings() {
-            const modal = document.getElementById('settingsModal');
-            modal.classList.toggle('hidden');
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('hidden');
         }
 
         function saveToken() {
@@ -305,7 +297,7 @@
             if (!token) return;
             localStorage.setItem('DOG_API_TOKEN', token);
             alert(i18n[currentLang].saveSuccess);
-            document.getElementById('settingsModal').classList.add('hidden');
+            document.getElementById('settingsPanel').classList.add('hidden');
         }
 
         async function parseVideo() {
@@ -320,7 +312,7 @@
             const dict = i18n[currentLang];
 
             if (!API_TOKEN) {
-                toggleSettings(); // 没token直接弹窗
+                document.getElementById('settingsPanel').classList.remove('hidden');
                 showError(dict.errNoToken);
                 return;
             }
@@ -370,7 +362,6 @@
             player.src = currentVideoUrl;
             player.poster = data.coverUrls;
             
-            // 手机端优化：解析成功后平滑滚动到播放器
             setTimeout(() => {
                 document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
@@ -382,8 +373,71 @@
             errorBox.classList.remove('hidden');
         }
 
-        function downloadVideo() {
-            if (currentVideoUrl) window.open(currentVideoUrl, '_blank');
+        // 修改后的下载功能：支持自定义文件名和强制 .mp4 后缀
+        async function downloadVideo() {
+            if (!currentVideoUrl) return;
+
+            const btn = document.getElementById('downloadBtn');
+            const btnTextSpan = document.getElementById('ui-downloadBtn');
+            const originalText = btnTextSpan.innerText;
+            const originalIcon = btn.innerHTML;
+            const dict = i18n[currentLang];
+
+            // 1. 准备文件名：移除非法字符，并确保以 .mp4 结尾
+            let title = document.getElementById('title').innerText || 'video';
+            // 替换 Windows/Unix 文件名非法字符
+            title = title.replace(/[\\/:*?"<>|]/g, '_').trim();
+            // 如果没有 .mp4 后缀，手动加上
+            const filename = title.toLowerCase().endsWith('.mp4') ? title : (title + '.mp4');
+
+            try {
+                // 更新按钮状态
+                btn.disabled = true;
+                btn.innerHTML = `<div class="loading-spinner w-5 h-5 border-2 inline-block mr-2" style="width:1.25rem;height:1.25rem;border-width:2px;"></div> ${dict.downloading}`;
+
+                // 2. 尝试获取视频数据 (Blob)
+                // 优先尝试直接获取 (可能受 CORS 限制)
+                let response;
+                try {
+                    response = await fetch(currentVideoUrl);
+                    if (!response.ok) throw new Error('Direct fetch failed');
+                } catch (e) {
+                    console.log("Direct download failed, trying proxy...");
+                    // 失败则尝试通过代理获取
+                    const PROXY_URL = "https://corsproxy.io/?";
+                    response = await fetch(PROXY_URL + encodeURIComponent(currentVideoUrl));
+                }
+
+                if (!response.ok) throw new Error('Download failed');
+
+                // 3. 创建 Blob URL 并触发下载
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename; // 这里设置强制文件名
+                document.body.appendChild(a);
+                a.click();
+                
+                // 清理
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+            } catch (err) {
+                console.error("Download error:", err);
+                // 4. 兜底方案：如果 Fetch 彻底失败，回退到 window.open
+                alert(dict.dlFail);
+                window.open(currentVideoUrl, '_blank');
+            } finally {
+                // 恢复按钮
+                btn.disabled = false;
+                btn.innerHTML = originalIcon;
+                // 重新设置文字，防止 innerHTML 覆盖了 id
+                // 但上面的 innerHTML 已经包含了 id="ui-downloadBtn" 的结构吗？
+                // 原始 innerHTML 包含 <span id="ui-downloadBtn">...</span>
+                // 所以恢复 originalIcon 是安全的。
+            }
         }
 
         document.getElementById('videoUrl').addEventListener('keypress', (e) => {
