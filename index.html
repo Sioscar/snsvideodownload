@@ -33,7 +33,7 @@
         * { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col">
+<body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col relative">
 
     <!-- 导航栏 -->
     <nav class="p-4 flex justify-end">
@@ -144,6 +144,11 @@
         <span id="quotaInfo" class="hidden"><span id="ui-quotaLabel">API 剩余次数</span>: <span id="leftTimes">0</span></span>
         <p class="mt-1" id="ui-footerNote">フライメディア社内用</p>
     </footer>
+
+    <!-- 版本号 -->
+    <div class="fixed bottom-2 right-2 text-gray-300 text-[10px] pointer-events-none select-none mix-blend-multiply opacity-60">
+        v1.0.9
+    </div>
 
     <script>
         const i18n = {
